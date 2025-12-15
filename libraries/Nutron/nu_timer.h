@@ -4,7 +4,7 @@
 class NuTimer
 {
 public:
-    NuTimer(unsigned long duration) 
+    NuTimer(unsigned int duration = 0) 
     { 
         Reset(duration);
     }
@@ -14,7 +14,7 @@ public:
         m_startTime = millis();
     }
 
-    void Reset(unsigned long duration) 
+    void Reset(unsigned int duration) 
     {
         m_duration = duration;
         Reset();
@@ -33,6 +33,6 @@ public:
     }
 
 private:
-    unsigned long m_duration;     // how long this timer lasts
-    unsigned long m_startTime;    // current value
+    unsigned int m_duration;     // how long this timer lasts
+    unsigned int m_startTime;    // current value
 }; 

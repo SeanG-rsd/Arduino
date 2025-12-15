@@ -4,5 +4,5 @@
     "board": "arduino:avr:diecimila",
     "port": "COM3",
     "programmer": "arduino:avrisp",
-    "sketch": "NeoHouseB\\NeoHouseB.ino"
+    "sketch": "LedHouse\\LedHouse.ino"
 }

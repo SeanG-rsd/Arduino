@@ -56,5 +56,5 @@ void loop()
 {
     update_houses(&A_leds, A_houses, NUM_HOUSES_A);
     
-    delay(2000);
+    //delay(2000);
 }
