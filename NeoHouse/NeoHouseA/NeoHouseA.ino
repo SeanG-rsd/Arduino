@@ -1,4 +1,4 @@
-#include "neo_house.h"
+#include "neo_hoa.h"
 
 #define DATA_PIN      7  	// this is the data pin connected to the LED strip.  If using WS2801 you also need a clock pin
 #define NUM_LIGHTS  200	// change this for the number of LEDs in the strip
@@ -7,56 +7,25 @@
 // RGB color order, 800 KHz
 Adafruit_NeoPixel all_leds = Adafruit_NeoPixel( NUM_LIGHTS, DATA_PIN, NEO_RGB + NEO_KHZ800 );
 
-#define NUM_HOUSES  26
-#define FIRST_HOUSE  0
-#define COUNT_HOUSE 26
+HOA hoa = HOA();
 
-House all_houses[NUM_HOUSES] = { 
-    House(  8, 2),
-    House( 13, 2),
-    House( 19, 2),
-    House( 24, 2),
-      
-    House( 34, 2),  
-    House( 39, 2),
-    House( 44, 2),  
-    House( 50, 2),
-    
-    House( 64, 1), // lighthoues
-    //House( 67, 2),
-    House( 71, 2), // winery
-    House( 77, 2), // toystore
+// void update_houses(Adafruit_NeoPixel* leds, House* houses, int count)
+// {
+//     leds->clear();
+//     int last_house = min(count, FIRST_HOUSE + COUNT_HOUSE);
 
-    House( 88, 2),
-    House( 95, 2),
-    House(100, 2),
+//     for(int ii=FIRST_HOUSE; ii < last_house; ii++)
+//     {
+//         houses[ii].update(leds);
+//     }
 
-    House(108, 2),
-    House(113, 2),
-    House(119, 2),
-    
-    House(130, 2),
-    House(138, 2),
-    House(144, 2), // gift shop
-    
-    House(154, 2),
-    House(159, 2),
-    House(164, 2),
-    House(171, 2),
+//     leds->show();
+// }
 
-    House(183, 2),
-    House(197, 3)
-};
-
-void update_houses(Adafruit_NeoPixel* leds, House* houses, int count)
-{
+void update_hoa(Adafruit_NeoPixel* leds) {
     leds->clear();
-    int last_house = min(count, FIRST_HOUSE + COUNT_HOUSE);
 
-    for(int ii=FIRST_HOUSE; ii < last_house; ii++)
-    {
-        houses[ii].update(leds);
-    }
+    hoa.update(leds);
 
     leds->show();
 }
@@ -78,20 +47,20 @@ void update_leds(Adafruit_NeoPixel* leds)
 }
 
 
-void setup_houses(Adafruit_NeoPixel* leds, House* houses, int count)
+void setup_houses(Adafruit_NeoPixel* leds)
 {
     leds->begin();
-    update_houses(leds, houses, count);
+    update_hoa(leds);
 }
 
 void setup()
 {
     Serial.begin(57600);  // print for debug
-    setup_houses(&all_leds, all_houses, NUM_HOUSES);
+    setup_houses(&all_leds);
 }
 
 void loop()
 {
-    update_houses(&all_leds, all_houses, NUM_HOUSES);
+    update_hoa(&all_leds);
     //update_leds(&all_leds);
 }
