@@ -12,7 +12,7 @@
 #define PARTY_PROB 20    // probability of starting a party
 #define PARTY_COOL 30000 // 30s of house party cooldown (before considering a new party)
 
-#define POLICE_RATE 400
+#define POLICE_RATE 100
 
 #define NUM_PARTY_COLORS 10
 static uint32_t PartyColors[NUM_PARTY_COLORS] =
@@ -28,33 +28,34 @@ static uint32_t PartyColors[NUM_PARTY_COLORS] =
         COLOR_BLUE_ROYAL,
         COLOR_PINK_HOT};
 
-static uint32_t PoliceColors[2] = 
+static uint32_t PoliceColors[2] =
     {
         COLOR_RED,
-        COLOR_BLUE
-    };
+        COLOR_BLUE};
 
 class House : public NuRange
 {
 public:
     House(int _start = 0, int _count = 0, uint32_t _color = HOUSE_COLOR)
-        : NuRange(_start, _count), m_color(_color), m_partyMode(false)
+        : NuRange(_start, _count), m_color(_color), m_partyMode(false), m_arrested(true)
     {
         m_partyTimer.Reset(random(PARTY_COOL));
     }
 
     void update(Adafruit_NeoPixel *leds)
     {
-        if (m_partyMode)
+        
+        if (m_policeMode)
+        {
+            police(leds);
+            return;
+        }
+        
+        if (m_partyMode || !m_arrested)
         {
             house_party(leds);
             return;
         }
-
-        if (m_policeMode) {
-            police(leds);
-        }
-        
         // default - just light the houses
         house_lights(leds);
     }
@@ -62,6 +63,7 @@ public:
     void setParty(bool partyMode)
     {
         m_partyMode = partyMode;
+        m_arrested = !partyMode;
     }
 
     void setPolice(bool police)
@@ -95,15 +97,17 @@ private:
 
     void police(Adafruit_NeoPixel *leds)
     {
-        if (m_partyDelay.IsExpired()) 
-        {
-            m_partyDelay.Reset(POLICE_RATE);
+        auto c = PoliceColors[(m_lastPolice) % 2];
 
-            for (int jj = 0; jj < m_count; jj++)
-            {
-                auto c = PoliceColors[(++m_lastPolice) % 2];
-                leds->setPixelColor(m_start + jj, c);
-            }
+        if (m_partyDelay.IsExpired())
+        {
+            c = PoliceColors[(++m_lastPolice) % 2];
+            m_partyDelay.Reset(POLICE_RATE);
+        }
+
+        for (int jj = 0; jj < m_count; jj++)
+        {
+            leds->setPixelColor(m_start + jj, c);
         }
     }
 
@@ -111,6 +115,7 @@ private:
     uint32_t m_color;
     int m_lastPolice;
     bool m_partyMode;
+    bool m_arrested;
     bool m_policeMode;
     NuTimer m_partyTimer;
     NuTimer m_partyDelay; // delay between

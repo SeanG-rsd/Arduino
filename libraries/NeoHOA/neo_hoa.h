@@ -9,9 +9,13 @@
 #define PARTY_PROB 100   // probability of starting a party
 #define PARTY_COOL 10000 // 30s of house party cooldown (before considering a new party)
 
+#define POLICE_COOL 200  // 200ms before the police move to the next house
+#define ARREST_TIME 2000 // 2s of arrest time
+
 #define NUM_HOUSES 26
 #define FIRST_HOUSE 0
 #define COUNT_HOUSE 26
+
 #define POLICE_HOUSE 22
 
 class HOA
@@ -54,40 +58,68 @@ public:
               House(183, 2),
               House(197, 3)}
     {
-        m_allHouses[POLICE_HOUSE].setPolice(true);
-
         m_partyTimer.Reset(random(PARTY_COOL));
     }
 
     void update(Adafruit_NeoPixel *leds)
     {
-        if (m_partyTimer.IsExpired())
+        if (m_partyTime)
         {
-            if (!m_partyTime)
+            if (m_policeHouse == m_partyHouse) // check if police reached the house
             {
-                auto partyTime = random(100) < PARTY_PROB;
-                if (partyTime)
+                if (m_policeTimer.IsExpired())
                 {
-                    m_partyTimer.Reset(random(PARTY_TIME >> 1, PARTY_TIME));
-                    m_partyTime = true;
-                    
-                    int partyHouse = POLICE_HOUSE;
-                    while (partyHouse == POLICE_HOUSE) {
-                        partyHouse = random(NUM_HOUSES);
-                    }
 
-                    m_partyHouse = partyHouse;
-                    m_allHouses[partyHouse].setParty(true);
-                }
-                else
-                {
+                    m_partyTime = false;
+                    m_allHouses[m_partyHouse].setPolice(false);
+                    m_allHouses[m_partyHouse].setParty(false);
+                    m_allHouses[POLICE_HOUSE].setPolice(false);
                     m_partyTimer.Reset(random(PARTY_COOL));
                 }
             }
+            else if (m_policeTimer.IsExpired()) // move the police towards the party house
+            {
+                if (m_policeHouse != POLICE_HOUSE)
+                {
+                    m_allHouses[m_policeHouse].setPolice(false);
+                }
+                m_policeHouse += m_partyDirection;
+                m_allHouses[m_policeHouse].setPolice(true);
+
+                if (m_policeHouse == m_partyHouse)
+                {
+                    m_policeTimer.Reset(ARREST_TIME);
+                }
+                else
+                {
+                    m_policeTimer.Reset(POLICE_COOL);
+                }
+            }
+        }
+        else if (m_partyTimer.IsExpired())
+        {
+            auto partyTime = random(100) < PARTY_PROB;
+            if (partyTime)
+            {
+                m_partyTimer.Reset(random(PARTY_TIME >> 1, PARTY_TIME));
+                m_partyTime = true;
+
+                int partyHouse = POLICE_HOUSE;
+                while (partyHouse == POLICE_HOUSE)
+                {
+                    partyHouse = random(NUM_HOUSES);
+                }
+
+                m_partyHouse = partyHouse;
+                m_allHouses[partyHouse].setParty(true);
+                m_allHouses[POLICE_HOUSE].setPolice(true);
+
+                m_policeHouse = POLICE_HOUSE;
+                m_policeTimer.Reset(POLICE_COOL);
+                m_partyDirection = POLICE_HOUSE < partyHouse ? 1 : -1;
+            }
             else
             {
-                m_partyTime = false;
-                m_allHouses[m_partyHouse].setParty(false);
                 m_partyTimer.Reset(random(PARTY_COOL));
             }
         }
@@ -103,4 +135,8 @@ private:
     bool m_partyTime;
     NuTimer m_partyTimer;
     int m_partyHouse;
+
+    NuTimer m_policeTimer;
+    int m_policeHouse;
+    int m_partyDirection;
 };

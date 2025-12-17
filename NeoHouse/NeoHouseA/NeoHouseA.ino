@@ -56,6 +56,9 @@ void setup_houses(Adafruit_NeoPixel* leds)
 void setup()
 {
     Serial.begin(57600);  // print for debug
+
+    randomSeed(analogRead(A0));
+
     setup_houses(&all_leds);
 }
 
