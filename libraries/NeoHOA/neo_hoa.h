@@ -12,52 +12,12 @@
 #define POLICE_COOL 200  // 200ms before the police move to the next house
 #define ARREST_TIME 2000 // 2s of arrest time
 
-#define NUM_HOUSES 26
-#define FIRST_HOUSE 0
-#define COUNT_HOUSE 26
-
-#define POLICE_HOUSE 22
-
 class HOA
 {
 public:
-    HOA()
-        : m_allHouses{
-              House(8, 2),
-              House(13, 2),
-              House(19, 2),
-              House(24, 2),
-
-              House(34, 2),
-              House(39, 2),
-              House(44, 2),
-              House(50, 2),
-
-              House(64, 1), // lighthoues
-              // House( 67, 2),
-              House(71, 2), // winery
-              House(77, 2), // toystore
-
-              House(88, 2),
-              House(95, 2),
-              House(100, 2),
-
-              House(108, 2),
-              House(113, 2),
-              House(119, 2),
-
-              House(130, 2),
-              House(138, 2),
-              House(144, 2), // gift shop
-
-              House(154, 2),
-              House(159, 2),
-              House(164, 2), // police department
-              House(171, 2),
-
-              House(183, 2),
-              House(197, 3)}
+    HOA(House* houses, int numHouses, int policeHouse)
     {
+        m_allHouses = houses;
         m_partyTimer.Reset(random(PARTY_COOL));
     }
 
@@ -73,13 +33,13 @@ public:
                     m_partyTime = false;
                     m_allHouses[m_partyHouse].setPolice(false);
                     m_allHouses[m_partyHouse].setParty(false);
-                    m_allHouses[POLICE_HOUSE].setPolice(false);
+                    m_allHouses[m_policeHouseIndex].setPolice(false);
                     m_partyTimer.Reset(random(PARTY_COOL));
                 }
             }
             else if (m_policeTimer.IsExpired()) // move the police towards the party house
             {
-                if (m_policeHouse != POLICE_HOUSE)
+                if (m_policeHouse != m_policeHouseIndex)
                 {
                     m_allHouses[m_policeHouse].setPolice(false);
                 }
@@ -104,19 +64,19 @@ public:
                 m_partyTimer.Reset(random(PARTY_TIME >> 1, PARTY_TIME));
                 m_partyTime = true;
 
-                int partyHouse = POLICE_HOUSE;
-                while (partyHouse == POLICE_HOUSE)
+                int partyHouse = m_policeHouseIndex;
+                while (partyHouse == m_policeHouseIndex)
                 {
-                    partyHouse = random(NUM_HOUSES);
+                    partyHouse = random(m_numHouses);
                 }
 
                 m_partyHouse = partyHouse;
                 m_allHouses[partyHouse].setParty(true);
-                m_allHouses[POLICE_HOUSE].setPolice(true);
+                m_allHouses[m_policeHouseIndex].setPolice(true);
 
-                m_policeHouse = POLICE_HOUSE;
+                m_policeHouse = m_policeHouseIndex;
                 m_policeTimer.Reset(POLICE_COOL);
-                m_partyDirection = POLICE_HOUSE < partyHouse ? 1 : -1;
+                m_partyDirection = m_policeHouseIndex < partyHouse ? 1 : -1;
             }
             else
             {
@@ -124,14 +84,17 @@ public:
             }
         }
 
-        for (int i = 0; i < NUM_HOUSES; i++)
+        for (int i = 0; i < m_numHouses; i++)
         {
             m_allHouses[i].update(leds);
         }
     }
 
 private:
-    House m_allHouses[NUM_HOUSES];
+    int m_numHouses;
+    int m_policeHouseIndex;
+
+    House* m_allHouses;
     bool m_partyTime;
     NuTimer m_partyTimer;
     int m_partyHouse;
